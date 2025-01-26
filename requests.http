@@ -9,7 +9,48 @@ Content-Type: application/json
   "couponCode": "D15"
 }
 
-### Execute Purchase
+### Calculate Price. Empty body
+POST http://127.0.0.1:8337/calculate-price
+Accept: application/json
+Content-Type: application/json
+
+{
+
+}
+
+### Calculate Price. Validation Errors
+POST http://127.0.0.1:8337/calculate-price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": null,
+  "taxNumber": "DE123"
+}
+
+### Calculate Price. Wrong coupon
+POST http://127.0.0.1:8337/calculate-price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 1,
+  "taxNumber": "DE123456789",
+  "couponCode": "wrongCoupon"
+}
+
+### Calculate Price. Wrong product
+POST http://127.0.0.1:8337/calculate-price
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 111,
+  "taxNumber": "DE123456789",
+  "couponCode": "D15"
+}
+
+### Execute Purchase. Paypal
 POST http://127.0.0.1:8337/purchase
 Accept: application/json
 Content-Type: application/json
@@ -19,4 +60,64 @@ Content-Type: application/json
   "taxNumber": "IT12345678900",
   "couponCode": "D15",
   "paymentProcessor": "paypal"
+}
+
+### Execute Purchase. Stripe
+POST http://127.0.0.1:8337/purchase
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 1,
+  "taxNumber": "IT12345678900",
+  "couponCode": "D15",
+  "paymentProcessor": "stripe"
+}
+
+### Execute Purchase. Wrong Payment Processor
+POST http://127.0.0.1:8337/purchase
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 1,
+  "taxNumber": "IT12345678900",
+  "couponCode": "D15",
+  "paymentProcessor": "wrongPaymentProcessor"
+}
+
+### Execute Purchase. Wrong product
+POST http://127.0.0.1:8337/purchase
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 111,
+  "taxNumber": "IT12345678900",
+  "couponCode": "D15",
+  "paymentProcessor": "stripe"
+}
+
+### Execute Purchase. Wrong Tax country
+POST http://127.0.0.1:8337/purchase
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 111,
+  "taxNumber": "AA12345678900",
+  "couponCode": "D15",
+  "paymentProcessor": "stripe"
+}
+
+### Execute Purchase. Wrong Tax regex
+POST http://127.0.0.1:8337/purchase
+Accept: application/json
+Content-Type: application/json
+
+{
+  "product": 1,
+  "taxNumber": "IT1234567890A",
+  "couponCode": "D15",
+  "paymentProcessor": "stripe"
 }
