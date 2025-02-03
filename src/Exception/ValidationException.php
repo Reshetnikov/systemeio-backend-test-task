@@ -6,11 +6,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ValidationException extends \RuntimeException
 {
-    private string $field;
-
-    public function __construct(string $field, string $message, int $code = Response::HTTP_BAD_REQUEST, \Throwable $previous = null)
+    public function __construct(private readonly string $field, string $message, int $code = Response::HTTP_BAD_REQUEST, \Throwable $previous = null)
     {
-        $this->field = $field;
         parent::__construct($message, $code, $previous);
     }
 

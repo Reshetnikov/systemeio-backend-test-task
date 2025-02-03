@@ -2,20 +2,19 @@
 
 namespace App\Service\PaymentProcessor;
 
+use App\Enum\PaymentProcessor;
+use Exception;
 use Systemeio\TestForCandidates\PaymentProcessor\PaypalPaymentProcessor;
 
-class PaypalPaymentProcessorAdapter implements PaymentProcessorInterface
+readonly class PaypalPaymentProcessorAdapter implements PaymentProcessorInterface
 {
-    private PaypalPaymentProcessor $paypalPaymentProcessor;
-
-    public function __construct(PaypalPaymentProcessor $paypalPaymentProcessor)
+    public function __construct(private PaypalPaymentProcessor $paypalPaymentProcessor)
     {
-        $this->paypalPaymentProcessor = $paypalPaymentProcessor;
     }
 
-    public function supports(string $processor): bool
+    public function supports(PaymentProcessor $processor): bool
     {
-        return $processor === 'paypal';
+        return $processor == PaymentProcessor::PAYPAL;
     }
 
     public function processPayment(float $price): bool
@@ -24,7 +23,7 @@ class PaypalPaymentProcessorAdapter implements PaymentProcessorInterface
             $smallestUnitPrice = (int)($price * 100);
             $this->paypalPaymentProcessor->pay($smallestUnitPrice);
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception) {
             return false;
         }
     }

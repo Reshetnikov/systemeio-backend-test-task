@@ -9,11 +9,8 @@ use App\Entity\TaxFormat;
 
 class TaxNumberValidatorValidator extends ConstraintValidator
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(private EntityManagerInterface $entityManager)
     {
-        $this->entityManager = $entityManager;
     }
 
     public function validate($value, Constraint $constraint): void
@@ -25,7 +22,7 @@ class TaxNumberValidatorValidator extends ConstraintValidator
         $countryCode = substr($value, 0, 2);
         $taxFormat = $this->entityManager->getRepository(TaxFormat::class)
             ->findOneBy(['countryCode' => $countryCode]);
-  
+
         if (!$taxFormat || !preg_match('/' . $taxFormat->getRegexPattern() . '/', $value)) {
             $this->context->buildViolation($constraint->message)
                 ->setParameter('{{ value }}', $value)

@@ -2,6 +2,7 @@
 
 namespace App\Tests\Controller;
 
+use App\Enum\PaymentProcessor;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class PurchaseControllerTest extends WebTestCase
@@ -164,7 +165,7 @@ class PurchaseControllerTest extends WebTestCase
         $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
-            'paymentProcessor' => 'paypal',
+            'paymentProcessor' => PaymentProcessor::PAYPAL->value,
             'couponCode' => 'P10',
         ]));
 
@@ -182,7 +183,7 @@ class PurchaseControllerTest extends WebTestCase
         $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
-            'paymentProcessor' => 'stripe',
+            'paymentProcessor' => PaymentProcessor::STRIPE->value,
             'couponCode' => 'P10',
         ]));
 
@@ -214,7 +215,40 @@ class PurchaseControllerTest extends WebTestCase
         $expectedErrors = [
             [
                 'field' => 'paymentProcessor',
-                'message' => 'Invalid payment processor.',
+                'message' => 'This value should not be blank.',
+            ],
+        ];
+
+        foreach ($expectedErrors as $expectedError) {
+            $this->assertContains($expectedError, $data['errors'], sprintf(
+                'Expected error for field "%s" with message "%s" not found.',
+                $expectedError['field'],
+                $expectedError['message']
+            ));
+        }
+    }
+
+    public function testPurchaseUnknownPaymentProcessor(): void
+    {
+        $client = static::createClient();
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+            'product' => 1,
+            'taxNumber' => 'DE123456789',
+            'paymentProcessor' => PaymentProcessor::UNKNOWN,
+            'couponCode' => 'P10',
+        ]));
+
+        $this->assertResponseStatusCodeSame(400);
+        $data = json_decode($client->getResponse()->getContent(), true);
+
+        $this->assertArrayHasKey('errors', $data);
+        $this->assertIsArray($data['errors']);
+        $this->assertGreaterThan(0, count($data['errors']));
+
+        $expectedErrors = [
+            [
+                'field' => 'paymentProcessor',
+                'message' => 'Unsupported payment processor.',
             ],
         ];
 
@@ -233,7 +267,7 @@ class PurchaseControllerTest extends WebTestCase
         $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'product' => 111,
             'taxNumber' => 'DE123456789',
-            'paymentProcessor' => 'stripe',
+            'paymentProcessor' => PaymentProcessor::STRIPE->value,
             'couponCode' => 'P10',
         ]));
 
@@ -266,7 +300,7 @@ class PurchaseControllerTest extends WebTestCase
         $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'AA123456789',
-            'paymentProcessor' => 'stripe',
+            'paymentProcessor' => PaymentProcessor::STRIPE->value,
             'couponCode' => 'P10',
         ]));
 
@@ -298,7 +332,7 @@ class PurchaseControllerTest extends WebTestCase
         $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE12345678A', // ...A 
-            'paymentProcessor' => 'stripe',
+            'paymentProcessor' => PaymentProcessor::STRIPE->value,
             'couponCode' => 'P10',
         ]));
 

@@ -2,20 +2,18 @@
 
 namespace App\Service\PaymentProcessor;
 
+use App\Enum\PaymentProcessor;
 use Systemeio\TestForCandidates\PaymentProcessor\StripePaymentProcessor;
 
-class StripePaymentProcessorAdapter implements PaymentProcessorInterface
+readonly class StripePaymentProcessorAdapter implements PaymentProcessorInterface
 {
-    private StripePaymentProcessor $stripePaymentProcessor;
-
-    public function __construct(StripePaymentProcessor $stripePaymentProcessor)
+    public function __construct(private StripePaymentProcessor $stripePaymentProcessor)
     {
-        $this->stripePaymentProcessor = $stripePaymentProcessor;
     }
 
-    public function supports(string $processor): bool
+    public function supports(PaymentProcessor $processor): bool
     {
-        return $processor === 'stripe';
+        return $processor == PaymentProcessor::STRIPE;
     }
     
     public function processPayment(float $price): bool

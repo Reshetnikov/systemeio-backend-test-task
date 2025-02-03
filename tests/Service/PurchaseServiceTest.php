@@ -5,15 +5,17 @@ namespace App\Tests\Service;
 use App\Entity\Product;
 use App\Entity\Coupon;
 use App\Entity\TaxFormat;
+use App\Enum\PaymentProcessor;
 use App\Exception\ValidationException;
 use App\Service\PurchaseService;
 use App\Service\PaymentProcessor\PaymentProcessorInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class PurchaseServiceTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
+    private EntityManagerInterface & MockObject $entityManager;
     private PurchaseService $purchaseService;
     private array $paymentProcessors;
 
@@ -22,11 +24,11 @@ class PurchaseServiceTest extends TestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         $paypalProcessor = $this->createMock(PaymentProcessorInterface::class);
-        $paypalProcessor->method('supports')->willReturnCallback(fn(string $processor) => $processor === 'paypal');
+        $paypalProcessor->method('supports')->willReturnCallback(fn(PaymentProcessor $processor) => $processor == PaymentProcessor::PAYPAL);
         $paypalProcessor->method('processPayment')->willReturn(true);
 
         $stripeProcessor = $this->createMock(PaymentProcessorInterface::class);
-        $stripeProcessor->method('supports')->willReturnCallback(fn(string $processor) => $processor === 'stripe');
+        $stripeProcessor->method('supports')->willReturnCallback(fn(PaymentProcessor $processor) => $processor == PaymentProcessor::STRIPE);
         $stripeProcessor->method('processPayment')->willReturn(true);
 
         $this->paymentProcessors = [$paypalProcessor, $stripeProcessor];
@@ -47,16 +49,14 @@ class PurchaseServiceTest extends TestCase
 
         $productRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $productRepositoryMock->method('find')->willReturn($product);
-        
+
         $couponRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $couponRepositoryMock->method('findOneBy')->willReturn($coupon);
 
         $taxFormatRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $taxFormatRepositoryMock->method('findOneBy')->willReturn($taxFormat);
 
-       /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityManager */
-       $entityManager = $this->entityManager;
-       $entityManager->method('getRepository')
+        $this->entityManager->method('getRepository')
             ->willReturnMap([
                 [Product::class, $productRepositoryMock],
                 [Coupon::class, $couponRepositoryMock],
@@ -72,9 +72,8 @@ class PurchaseServiceTest extends TestCase
         $productRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $productRepositoryMock->method('find')->willReturn(null);
 
-        /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityManager */
-       $entityManager = $this->entityManager;
-       $entityManager->method('getRepository')
+
+        $this->entityManager->method('getRepository')
             ->willReturnMap([
                 [Product::class, $productRepositoryMock],
             ]);
@@ -96,9 +95,7 @@ class PurchaseServiceTest extends TestCase
         $couponRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $couponRepositoryMock->method('findOneBy')->willReturn(null);
 
-        /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityManager */
-        $entityManager = $this->entityManager;
-        $entityManager->method('getRepository')
+        $this->entityManager->method('getRepository')
             ->willReturnMap([
                 [Product::class, $productRepositoryMock],
                 [Coupon::class, $couponRepositoryMock],
@@ -127,9 +124,7 @@ class PurchaseServiceTest extends TestCase
         $taxFormatRepositoryMock = $this->createMock(\Doctrine\ORM\EntityRepository::class);
         $taxFormatRepositoryMock->method('findOneBy')->willReturn(null);
 
-        /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject $entityManager */
-       $entityManager = $this->entityManager;
-       $entityManager->method('getRepository')
+        $this->entityManager->method('getRepository')
             ->willReturnMap([
                 [Product::class, $productRepositoryMock],
                 [Coupon::class, $couponRepositoryMock],
@@ -144,7 +139,7 @@ class PurchaseServiceTest extends TestCase
 
     public function testProcessPaymentWithValidProcessor(): void
     {
-        $this->purchaseService->processPayment('paypal', 150.00);
+        $this->purchaseService->processPayment(PaymentProcessor::PAYPAL, 150.00);
 
         $this->addToAssertionCount(1);
     }
@@ -154,7 +149,7 @@ class PurchaseServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('Unsupported payment processor.');
 
-        $this->purchaseService->processPayment('unknown', 150.00);
+        $this->purchaseService->processPayment(PaymentProcessor::UNKNOWN, 150.00);
     }
 
     public function testProcessPaymentThrowsExceptionOnPaymentFailure(): void
@@ -168,6 +163,6 @@ class PurchaseServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('payment failed.');
 
-        $purchaseService->processPayment('any', 150.00);
+        $purchaseService->processPayment(PaymentProcessor::UNKNOWN, 150.00);
     }
 }

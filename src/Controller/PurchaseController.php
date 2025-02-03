@@ -2,8 +2,9 @@
 
 namespace App\Controller;
 
-use App\DTO\CalculatePriceRequest;
-use App\DTO\PurchaseRequest;
+use App\Enum\PaymentProcessor;
+use App\Requests\CalculatePriceRequest;
+use App\Requests\PurchaseRequest;
 use App\Exception\ValidationException;
 use App\Service\PurchaseService;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,13 +12,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class PurchaseController
+readonly class PurchaseController
 {
-    private PurchaseService $purchaseService;
-
-    public function __construct( PurchaseService $purchaseService)
+    public function __construct(private PurchaseService $purchaseService)
     {
-        $this->purchaseService = $purchaseService;
     }
 
     #[Route('/calculate-price', name: 'calculate_price', methods: ['POST'])]
@@ -55,7 +53,7 @@ class PurchaseController
         $purchaseRequest = new PurchaseRequest(
             product: $data['product'] ?? null,
             taxNumber: $data['taxNumber'] ?? null,
-            paymentProcessor: $data['paymentProcessor'] ?? null,
+            paymentProcessor: isset($data['paymentProcessor']) ? PaymentProcessor::tryFrom($data['paymentProcessor']) : null,
             couponCode: $data['couponCode'] ?? null
         );
 
@@ -82,12 +80,11 @@ class PurchaseController
         if ($violations instanceof \Symfony\Component\Validator\ConstraintViolationListInterface) {
             foreach ($violations as $violation) {
                 $errors[] = [
-                    'field' => $violation->getPropertyPath(), // Поле, к которому относится ошибка
-                    'message' => $violation->getMessage(),    // Сообщение об ошибке
+                    'field' => $violation->getPropertyPath(),
+                    'message' => $violation->getMessage(),
                 ];
             }
-        }
-        elseif ($violations instanceof \App\Exception\ValidationException) {
+        } elseif ($violations instanceof \App\Exception\ValidationException) {
             $errors[] = [
                 'field' => $violations->getField(),
                 'message' => $violations->getMessage(),

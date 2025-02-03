@@ -5,18 +5,14 @@ namespace App\Service;
 use App\Entity\Product;
 use App\Entity\Coupon;
 use App\Entity\TaxFormat;
+use App\Enum\PaymentProcessor;
 use App\Exception\ValidationException;
 use Doctrine\ORM\EntityManagerInterface;
 
-class PurchaseService
+readonly class PurchaseService
 {
-    private EntityManagerInterface $entityManager;
-    private array $paymentProcessors;
-
-    public function __construct(EntityManagerInterface $entityManager, iterable $paymentProcessors)
+    public function __construct(private EntityManagerInterface $entityManager, private iterable $paymentProcessors)
     {
-        $this->entityManager = $entityManager;
-        $this->paymentProcessors = $paymentProcessors;
     }
 
     public function calculatePrice(int $productId, ?string $couponCode, string $taxNumber): float 
@@ -48,16 +44,15 @@ class PurchaseService
             throw new ValidationException('taxNumber', sprintf('Tax number "%s" is invalid for country %s.', $taxNumber, substr($taxNumber, 0, 2)));
         }
 
-        $taxAmount = $price * $taxFormat->getTaxRate() / 100;
-        return $price + $taxAmount;
+        return $taxFormat->applyTax($price);
     }
 
-    public function processPayment(string $processor, float $price): void
+    public function processPayment(PaymentProcessor $processor, float $price): void
     {
         foreach ($this->paymentProcessors as $paymentProcessor) {
             if ($paymentProcessor->supports($processor)) {
                 if (!$paymentProcessor->processPayment($price)) {
-                    throw new ValidationException('paymentProcessor', "$processor payment failed.");
+                    throw new ValidationException('paymentProcessor', "{$processor->value} payment failed.");
                 }
                 return;
             }

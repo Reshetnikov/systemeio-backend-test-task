@@ -1,29 +1,26 @@
 <?php
-namespace App\DTO;
+namespace App\Requests;
 
+use App\Enum\PaymentProcessor;
 use Symfony\Component\Validator\Constraints as Assert;
-use App\Validator\TaxNumberValidator;
 
-class CalculatePriceRequest
+class PurchaseRequest
 {
-    #[Assert\NotBlank]
-    public ?int $product;
+    use ProductRequestField, TaxRequestField, CouponRequestField;
 
     #[Assert\NotBlank]
-    #[Assert\Length(min: 11)]
-    #[TaxNumberValidator]
-    public ?string $taxNumber;
-
-    #[Assert\Length(max: 20)]
-    public ?string $couponCode = null;
+    #[Assert\Type(PaymentProcessor::class)]
+    public ?PaymentProcessor $paymentProcessor;
 
     public function __construct(
         ?int $product,
         ?string $taxNumber,
+        ?PaymentProcessor $paymentProcessor,
         ?string $couponCode = null
     ) {
         $this->product = $product;
         $this->taxNumber = $taxNumber;
+        $this->paymentProcessor = $paymentProcessor;
         $this->couponCode = $couponCode;
     }
 }

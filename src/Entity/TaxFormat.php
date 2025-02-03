@@ -59,4 +59,9 @@ class TaxFormat
         $this->taxRate = $taxRate;
         return $this;
     }
+
+    public function applyTax(float $price): float
+    {
+        return $price + $price * $this->taxRate / 100;
+    }
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace Tests\Service\PaymentProcessor;
+namespace App\Tests\Service\PaymentProcessor;
 
+use App\Enum\PaymentProcessor;
 use App\Service\PaymentProcessor\StripePaymentProcessorAdapter;
 use Systemeio\TestForCandidates\PaymentProcessor\StripePaymentProcessor;
 use PHPUnit\Framework\TestCase;
@@ -19,12 +20,12 @@ class StripePaymentProcessorAdapterTest extends TestCase
 
     public function testSupportsReturnsTrueForStripe(): void
     {
-        $this->assertTrue($this->adapter->supports('stripe'));
+        $this->assertTrue($this->adapter->supports(PaymentProcessor::STRIPE));
     }
 
     public function testSupportsReturnsFalseForOtherProcessor(): void
     {
-        $this->assertFalse($this->adapter->supports('paypal'));
+        $this->assertFalse($this->adapter->supports(PaymentProcessor::PAYPAL));
     }
 
     public function testProcessPaymentReturnsTrueOnSuccessfulPayment(): void
