@@ -10,7 +10,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testCalculatePriceSuccess(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'couponCode' => 'P10',
@@ -27,7 +27,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testCalculatePriceEmptyBody(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([]));
+        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([]));
 
         $this->assertResponseStatusCodeSame(400);
         $data = json_decode($client->getResponse()->getContent(), true);
@@ -59,7 +59,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testCalculatePriceValidationErrors(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => null,
             'taxNumber' => 'DE123',
         ]));
@@ -98,7 +98,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testCalculatePriceWrongCoupon(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'couponCode' => 'wrongCoupon',
@@ -130,7 +130,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testCalculatePriceWrongProduct(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/calculate-price', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 111,
             'taxNumber' => 'DE123456789',
             'couponCode' => 'D15',
@@ -162,7 +162,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseSuccessPaypal(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'paymentProcessor' => PaymentProcessor::PAYPAL->value,
@@ -180,7 +180,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseSuccessStripe(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'paymentProcessor' => PaymentProcessor::STRIPE->value,
@@ -198,7 +198,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseWrongPaymentProcessor(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'paymentProcessor' => 'wrongPaymentProcessor',
@@ -231,7 +231,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseUnknownPaymentProcessor(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE123456789',
             'paymentProcessor' => PaymentProcessor::UNKNOWN,
@@ -264,7 +264,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseWrongProduct(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 111,
             'taxNumber' => 'DE123456789',
             'paymentProcessor' => PaymentProcessor::STRIPE->value,
@@ -297,7 +297,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseWrongTaxCountry(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'AA123456789',
             'paymentProcessor' => PaymentProcessor::STRIPE->value,
@@ -329,7 +329,7 @@ class PurchaseControllerTest extends WebTestCase
     public function testPurchaseWrongTaxRegex(): void
     {
         $client = static::createClient();
-        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode([
+        $client->request('POST', '/purchase', [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode([
             'product' => 1,
             'taxNumber' => 'DE12345678A', // ...A 
             'paymentProcessor' => PaymentProcessor::STRIPE->value,
